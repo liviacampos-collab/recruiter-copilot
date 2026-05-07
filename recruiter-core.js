@@ -117,9 +117,10 @@ Score leadershipMentorship from 0-100 using ONLY evidence stated on the resume:
 Critical for Staff: For Staff Engineer (AI Native) expectations, never assign overallMatch 90+ if leadershipMentorship is below 70—a Staff-caliber candidate without explicit mentorship/leadership evidence above must not score 90+ on overallMatch.
 
 === OUTREACH MESSAGE (outreachMessage field) ===
-The "outreachMessage" value MUST use the following template EXACTLY—same words, punctuation, line breaks, and URLs. Change ONLY two things: (1) replace the placeholder [first name] with the candidate's first name as shown on the resume (if no clear first name, use "there"); (2) replace the placeholder [role] with EXACTLY this role title and nothing else: ${JSON.stringify(role)}
+The "outreachMessage" value MUST use the following template EXACTLY—same words, punctuation, and line breaks. Substitute ONLY: (1) [first name] → the candidate's first name as shown on the resume (if no clear first name, use "there"); (2) [role] → EXACTLY this role title and nothing else: ${JSON.stringify(role)}
+Leave [YOUR CALENDLY LINK] and [YOUR NAME] exactly as written (recruiters replace those before sending).
 
-Template (verbatim except those two substitutions):
+Template (verbatim except the two substitutions above):
 
 Hi [first name],
 
@@ -145,10 +146,10 @@ empower students with access to innovative learning
 solutions.
 
 You can find time on my calendar here: 
-https://calendly.com/livia-campos/recruiter-screen-nerdy
+[YOUR CALENDLY LINK]
 
 Best,
-Livia
+[YOUR NAME]
 
 Do not paraphrase, add sentences, remove sentences, change capitalization, or substitute synonyms. Escape newlines inside JSON as \\n when emitting the JSON object.
 
@@ -176,7 +177,7 @@ Reply ONLY with valid JSON (double-quoted keys and strings), no markdown fences,
   "summary": "<2 sentences max, plain English>",
   "strengths": ["...", "...", "..."],
   "areasToValidate": ["...", "...", "..."],
-  "outreachMessage": "<exact template above: only substitute first name and role as specified>"
+  "outreachMessage": "<exact template above: substitute [first name] and [role] only; keep [YOUR CALENDLY LINK] and [YOUR NAME] literal>"
 }`;
 }
 

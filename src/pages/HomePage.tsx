@@ -69,7 +69,7 @@ export function HomePage() {
         </header>
 
         <p className="mb-6 text-center text-sm text-nerdy-muted">
-          Welcome back, <span className="font-medium text-nerdy-ink">Livia</span> 👋
+          Welcome back — hire well, we must! 🧙
         </p>
 
         <GlassCard className="p-6 sm:p-8" delay={40}>
