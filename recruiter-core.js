@@ -164,6 +164,16 @@ Rules:
 From the RESUME text only, infer the most probable current or primary location: prefer "City, Country" when both are stated or clearly inferable; use "Country" alone if no city appears. Use employers, education, contact blocks, or explicit address lines as clues. This field is informational only and MUST NOT affect any scores or shouldScreen.
 If location cannot be determined, use exactly: "Location not specified"
 
+=== NERDY INTERNAL LEVEL (nerdyLevel field) ===
+Map the candidate to Nerdy's internal job leveling string using resume evidence (years of professional software engineering experience, ownership, leadership, architecture, mentorship, org influence). Output EXACTLY one of these five string values—no other text:
+- "L3" — Junior band: roughly 0–3 years relevant experience
+- "L4" — Mid band: roughly 3–6 years
+- "L5" — Senior band: roughly 6–10 years with solid ownership and independent delivery
+- "L5/L6" — Strong senior band: roughly 10–12 years with team lead / tech lead signals and meaningful architecture responsibility
+- "L7" — Staff band: roughly 12+ years with clear mentorship, org-level influence, and architecture ownership (align with Staff expectations in this prompt)
+
+Use the strongest band supported by evidence; when between two adjacent codes, prefer the slash form only for the 10–12y strong-senior case ("L5/L6"). This field is informational for recruiters and MUST NOT override your separate "seniority" enum (Junior/Mid/Senior/Staff)—both must be internally consistent with the same resume facts.
+
 Reply ONLY with valid JSON (double-quoted keys and strings), no markdown fences, no extra text:
 {
   "overallMatch": <0-100>,
@@ -171,6 +181,7 @@ Reply ONLY with valid JSON (double-quoted keys and strings), no markdown fences,
   "aiNative": <0-100>,
   "leadershipMentorship": <0-100>,
   "seniority": "<exactly one of: Junior, Mid, Senior, Staff>",
+  "nerdyLevel": "<exactly one of: L3, L4, L5, L5/L6, L7>",
   "shouldScreen": true or false,
   "candidateName": "<First Last, or empty string if unknown>",
   "candidateLocation": "<City, Country or Country or Location not specified>",

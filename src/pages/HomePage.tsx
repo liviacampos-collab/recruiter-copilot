@@ -8,8 +8,10 @@ import { DEFAULT_ROLE, ROLE_OPTIONS, type RecruiterRole } from "@/data/roles";
 import { parseGeminiAnalysisJson } from "@/types/geminiAnalysis";
 import { extractTextFromCvFile } from "@/lib/extractCvText";
 
-const CV_ACCEPT =
-  ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const CV_ACCEPT = ".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+/** Shown as upload helper text and for wrong-file-type errors (no legacy .doc messaging). */
+const FORMAT_HINT = "Supported formats: PDF or DOCX";
 
 function CvUploadIcon({ className }: { className?: string }) {
   return (
@@ -42,7 +44,6 @@ export function HomePage() {
   const [candidateProfile, setCandidateProfile] = useState("");
   const [inputMode, setInputMode] = useState<ProfileInputMode>("paste");
   const [extracting, setExtracting] = useState(false);
-  const [uploadFileName, setUploadFileName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,11 +53,14 @@ export function HomePage() {
     try {
       const text = await extractTextFromCvFile(file);
       setCandidateProfile(text);
-      setUploadFileName(file.name);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Could not read that file.";
-      setError(msg);
-      setUploadFileName(null);
+      const msg = e instanceof Error ? e.message : "";
+      const lower = msg.toLowerCase();
+      const isWrongOrUnsupportedType =
+        lower.includes("unsupported file type") ||
+        lower.includes("legacy") ||
+        /\b\.doc\b/.test(lower);
+      setError(isWrongOrUnsupportedType ? FORMAT_HINT : msg || "Could not read that file.");
     } finally {
       setExtracting(false);
     }
@@ -86,7 +90,7 @@ export function HomePage() {
     if (!resumeText) {
       setError(
         inputMode === "upload"
-          ? "Upload a PDF or Word résumé (.docx), or switch to Paste Profile."
+          ? `Upload a CV or switch to Paste Profile. ${FORMAT_HINT}`
           : "Paste a candidate profile or résumé before generating analysis.",
       );
       return;
@@ -218,7 +222,7 @@ export function HomePage() {
                 type="file"
                 accept={CV_ACCEPT}
                 className="sr-only"
-                aria-label="Choose CV file"
+                aria-label={`Choose CV file. ${FORMAT_HINT}`}
                 onChange={handleFileInputChange}
               />
               <button
@@ -230,15 +234,14 @@ export function HomePage() {
                 className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#4DD9D5] bg-slate-50/40 px-4 py-12 text-center transition-colors hover:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-[#4DD9D5]/35 disabled:pointer-events-none disabled:opacity-60"
               >
                 <CvUploadIcon className="mb-3 text-[#4DD9D5]" />
-                <span className="text-sm font-medium text-nerdy-ink">
-                  {extracting ? "Reading your CV…" : "Drop your CV here or click to browse"}
-                </span>
-                <span className="mt-1 text-xs text-nerdy-muted">PDF or Word (.docx). Legacy .doc is not supported.</span>
-                {uploadFileName && !extracting ? (
-                  <span className="mt-3 max-w-full truncate text-xs font-medium text-nerdy-ink" title={uploadFileName}>
-                    Loaded: {uploadFileName}
-                  </span>
-                ) : null}
+                {extracting ? (
+                  <span className="text-sm font-medium text-nerdy-ink">Reading your CV…</span>
+                ) : (
+                  <>
+                    <span className="text-sm font-medium text-nerdy-ink">Drop your CV here or click to browse</span>
+                    <span className="mt-1 text-xs text-nerdy-muted">{FORMAT_HINT}</span>
+                  </>
+                )}
               </button>
             </div>
           )}

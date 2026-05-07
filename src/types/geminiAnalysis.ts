@@ -6,6 +6,8 @@ export interface GeminiAnalysis {
   /** Mentoring / leading engineers (from resume evidence); used in UI for Staff role signal breakdown */
   leadershipMentorship: number;
   seniority: string;
+  /** Nerdy internal level from model (L3–L7 / L5/L6) */
+  nerdyLevel: string;
   shouldScreen: boolean;
   /** Full name parsed from resume by the model */
   candidateName: string;
@@ -24,12 +26,15 @@ export function parseGeminiAnalysisJson(raw: string): GeminiAnalysis {
   const num = (v: unknown, fallback: number) =>
     typeof v === "number" && Number.isFinite(v) ? clamp100(v) : fallback;
 
+  const seniority = typeof data.seniority === "string" ? data.seniority : "Mid";
+
   return {
     overallMatch: num(data.overallMatch, 0),
     technicalDepth: num(data.technicalDepth, 0),
     aiNative: num(data.aiNative, 0),
     leadershipMentorship: num(data.leadershipMentorship, 0),
-    seniority: typeof data.seniority === "string" ? data.seniority : "Mid",
+    seniority,
+    nerdyLevel: normalizeNerdyLevel(data.nerdyLevel, seniority),
     shouldScreen: Boolean(data.shouldScreen),
     candidateName: normalizeCandidateName(data.candidateName),
     candidateLocation: normalizeCandidateLocation(data.candidateLocation),
@@ -61,4 +66,17 @@ const LOCATION_FALLBACK = "Location not specified";
 function normalizeCandidateLocation(raw: unknown): string {
   const s = typeof raw === "string" ? raw.trim() : "";
   return s || LOCATION_FALLBACK;
+}
+
+const NERDY_LEVELS = new Set(["L3", "L4", "L5", "L5/L6", "L7"]);
+
+function normalizeNerdyLevel(raw: unknown, seniority: string): string {
+  const s = typeof raw === "string" ? raw.trim() : "";
+  if (NERDY_LEVELS.has(s)) return s;
+  const b = seniority.toLowerCase();
+  if (b.includes("junior")) return "L3";
+  if (b.includes("mid")) return "L4";
+  if (b.includes("staff")) return "L7";
+  if (b.includes("senior")) return "L5";
+  return "L4";
 }

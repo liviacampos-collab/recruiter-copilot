@@ -166,8 +166,16 @@ export function ResultsPage() {
             <span className="font-semibold text-nerdy-ink">Overall match:</span> {gemini.overallMatch}/100
           </span>
           <span className="hidden sm:inline text-slate-300">|</span>
-          <span>
-            <span className="font-semibold text-nerdy-ink">Seniority (model):</span> {gemini.seniority}
+          <span className="inline-flex flex-wrap items-baseline gap-x-1 gap-y-1">
+            <span>
+              <span className="font-semibold text-nerdy-ink">Seniority:</span> {gemini.seniority}
+            </span>
+            <span className="text-slate-300" aria-hidden>
+              {"  |  "}
+            </span>
+            <span className="font-bold text-[#4DD9D5]">
+              Possible Nerdy Level: {gemini.nerdyLevel}
+            </span>
           </span>
           <span className="hidden sm:inline text-slate-300">|</span>
           <span>
