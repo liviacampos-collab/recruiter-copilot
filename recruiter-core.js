@@ -9,7 +9,7 @@ ${resumeText}
 === NERDY CONTEXT ===
 
 JOB DESCRIPTION - Senior Software Engineer (AI Native):
-Strong focus on AI-Native development. Must use agentic coding tools daily. Core stack: JavaScript, TypeScript, AWS (Lambda, RDS, EC2), CI/CD (GitHub Actions, CodeDeploy), OOP. Must have experience with AI tools like Cursor, Claude Code, Copilot, Make, n8n, Vercel, Supabase. Builds and runs what they ship end-to-end. Remote LATAM. English fluency required.
+Strong focus on AI-Native development. Must use agentic coding tools daily. Core stack: JavaScript, TypeScript, AWS (Lambda, RDS, EC2), CI/CD (GitHub Actions, CodeDeploy), OOP. Must have experience with AI tools like Cursor, Claude Code, Copilot, Make, n8n, Vercel, Supabase. Builds and runs what they ship end-to-end. Remote-first role. English fluency required.
 
 JOB DESCRIPTION - Staff Engineer (AI Native):
 10+ years required. Sets technical direction across squads. Mentors senior engineers explicitly and regularly. Architects high-scale distributed systems. Full-stack: JavaScript/TypeScript frontend, Java/Golang backend. Deep AWS cloud architecture. Communicates complex concepts to non-technical stakeholders. Hands-on coder AND technical leader.
@@ -40,6 +40,12 @@ BENCHMARK - SUCCESSFUL SENIOR HIRES AT NERDY:
 BENCHMARK - SUCCESSFUL STAFF HIRE AT NERDY:
 1. Fabio Franco - 20+ years, Team Lead of 10 engineers, Angular/Java full-stack, Kubernetes/Kafka/AWS, hiring decisions, performance reviews, co-founded company scaled to $2.5M revenue, M&A experience
 2. Fabiano Monteiro - 16 years, T-shaped engineer, Java/Kotlin/Go/Ruby/JS, Staff at iFood/PagBank, reduced latency 85%, mentored teams regularly, open banking architecture, AI tools: Cursor/Claude Code/GitHub Copilot
+
+=== LOCATION (INFORMATIONAL ONLY — NEVER AFFECTS SCORES) ===
+- You MUST output "candidateLocation" (see below) based on the resume only—city and country when both are inferable, or country alone when no city is stated.
+- NEVER use the candidate's country, city, region, timezone, or whether they are in or outside any region (including LATAM) to raise or lower overallMatch, technicalDepth, aiNative, leadershipMentorship, or any other numeric field.
+- NEVER set shouldScreen to false (or true) because of geography. Location must not influence shouldScreen in any way.
+- Do NOT add geography or "based outside [region]" style items to areasToValidate. Do not penalize or reward the candidate for where they live.
 
 === SCORING RULES (FOLLOW STRICTLY) ===
 - Non-engineers or career changers: overallMatch 0-15
@@ -153,6 +159,10 @@ Rules:
 - ALWAYS fill candidateName when any plausible full name appears in the resume (including LinkedIn exports pasted as text).
 - NEVER output placeholder strings such as "Candidate", "Unknown", "N/A", or similar—use best-effort extraction or "" only if truly no personal name exists anywhere in the text.
 
+=== CANDIDATE LOCATION (candidateLocation field) ===
+From the RESUME text only, infer the most probable current or primary location: prefer "City, Country" when both are stated or clearly inferable; use "Country" alone if no city appears. Use employers, education, contact blocks, or explicit address lines as clues. This field is informational only and MUST NOT affect any scores or shouldScreen.
+If location cannot be determined, use exactly: "Location not specified"
+
 Reply ONLY with valid JSON (double-quoted keys and strings), no markdown fences, no extra text:
 {
   "overallMatch": <0-100>,
@@ -162,6 +172,7 @@ Reply ONLY with valid JSON (double-quoted keys and strings), no markdown fences,
   "seniority": "<exactly one of: Junior, Mid, Senior, Staff>",
   "shouldScreen": true or false,
   "candidateName": "<First Last, or empty string if unknown>",
+  "candidateLocation": "<City, Country or Country or Location not specified>",
   "summary": "<2 sentences max, plain English>",
   "strengths": ["...", "...", "..."],
   "areasToValidate": ["...", "...", "..."],

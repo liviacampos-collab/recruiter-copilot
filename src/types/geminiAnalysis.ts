@@ -9,6 +9,8 @@ export interface GeminiAnalysis {
   shouldScreen: boolean;
   /** Full name parsed from resume by the model */
   candidateName: string;
+  /** City/country (or country only) inferred from resume; informational only */
+  candidateLocation: string;
   summary: string;
   /** Optional; when present, Results page prefers this over summary in the Recommendation panel */
   recommendation?: string;
@@ -30,6 +32,7 @@ export function parseGeminiAnalysisJson(raw: string): GeminiAnalysis {
     seniority: typeof data.seniority === "string" ? data.seniority : "Mid",
     shouldScreen: Boolean(data.shouldScreen),
     candidateName: normalizeCandidateName(data.candidateName),
+    candidateLocation: normalizeCandidateLocation(data.candidateLocation),
     summary: typeof data.summary === "string" ? data.summary : "",
     recommendation:
       typeof data.recommendation === "string" && data.recommendation.trim()
@@ -51,4 +54,11 @@ function normalizeCandidateName(raw: unknown): string {
   const s = typeof raw === "string" ? raw.trim() : "";
   if (!s || /^(candidate|unknown|n\/a|not\s+provided|none)$/i.test(s)) return "";
   return s;
+}
+
+const LOCATION_FALLBACK = "Location not specified";
+
+function normalizeCandidateLocation(raw: unknown): string {
+  const s = typeof raw === "string" ? raw.trim() : "";
+  return s || LOCATION_FALLBACK;
 }

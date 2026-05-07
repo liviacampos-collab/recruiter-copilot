@@ -108,6 +108,9 @@ export function ResultsPage() {
           <h1 className="mt-1 text-xl font-semibold text-nerdy-ink sm:text-2xl">
             {displayName ? `Analysis for ${displayName}` : "Analysis"}
           </h1>
+          <p className="mt-1 text-xs text-nerdy-muted">
+            📍 Based on CV: {gemini.candidateLocation}
+          </p>
           <p className="mt-1 text-lg font-semibold text-nerdy-ink">{role}</p>
           <p className="mt-1 text-[11px] font-medium text-accent">Powered by Claude (Anthropic)</p>
         </div>
