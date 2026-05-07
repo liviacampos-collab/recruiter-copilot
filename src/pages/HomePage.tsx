@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -6,19 +6,89 @@ import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { API_BASE_URL } from "@/lib/apiBase";
 import { DEFAULT_ROLE, ROLE_OPTIONS, type RecruiterRole } from "@/data/roles";
 import { parseGeminiAnalysisJson } from "@/types/geminiAnalysis";
+import { extractTextFromCvFile } from "@/lib/extractCvText";
+
+const CV_ACCEPT =
+  ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+function CvUploadIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="44"
+      height="44"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M12 15V3m0 12-4-4m4 4 4-4M4 19h16a1 1 0 0 0 1-1v-3"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+type ProfileInputMode = "paste" | "upload";
 
 export function HomePage() {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [role, setRole] = useState<RecruiterRole>(DEFAULT_ROLE);
   const [candidateProfile, setCandidateProfile] = useState("");
+  const [inputMode, setInputMode] = useState<ProfileInputMode>("paste");
+  const [extracting, setExtracting] = useState(false);
+  const [uploadFileName, setUploadFileName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const processCvFile = async (file: File) => {
+    setError(null);
+    setExtracting(true);
+    try {
+      const text = await extractTextFromCvFile(file);
+      setCandidateProfile(text);
+      setUploadFileName(file.name);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Could not read that file.";
+      setError(msg);
+      setUploadFileName(null);
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) void processCvFile(file);
+  };
+
+  const handleDrop = (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const file = e.dataTransfer.files?.[0];
+    if (file) void processCvFile(file);
+  };
+
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   const handleAnalyze = async () => {
     setError(null);
     const resumeText = candidateProfile.trim();
     if (!resumeText) {
-      setError("Paste a candidate profile or résumé before generating analysis.");
+      setError(
+        inputMode === "upload"
+          ? "Upload a PDF or Word résumé (.docx), or switch to Paste Profile."
+          : "Paste a candidate profile or résumé before generating analysis.",
+      );
       return;
     }
 
@@ -93,19 +163,85 @@ export function HomePage() {
           </div>
 
           <label
-            htmlFor="candidate"
+            htmlFor={inputMode === "paste" ? "candidate" : undefined}
             className="mt-6 block text-[10px] font-semibold uppercase tracking-wider text-nerdy-purple"
           >
             Candidate profile
           </label>
-          <textarea
-            id="candidate"
-            value={candidateProfile}
-            onChange={(e) => setCandidateProfile(e.target.value)}
-            placeholder="Paste LinkedIn, resume, or notes…"
-            rows={10}
-            className="mt-1.5 min-h-[200px] w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm leading-relaxed text-nerdy-ink placeholder:text-nerdy-muted shadow-inner focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/15"
-          />
+
+          <div
+            className="mt-2 flex rounded-xl border border-slate-200 bg-slate-50/80 p-1"
+            role="tablist"
+            aria-label="Candidate input mode"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={inputMode === "paste"}
+              className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${
+                inputMode === "paste"
+                  ? "bg-white text-nerdy-ink shadow-sm"
+                  : "text-nerdy-muted hover:text-nerdy-ink"
+              }`}
+              onClick={() => setInputMode("paste")}
+            >
+              Paste Profile
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={inputMode === "upload"}
+              className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${
+                inputMode === "upload"
+                  ? "bg-white text-nerdy-ink shadow-sm"
+                  : "text-nerdy-muted hover:text-nerdy-ink"
+              }`}
+              onClick={() => setInputMode("upload")}
+            >
+              Upload CV
+            </button>
+          </div>
+
+          {inputMode === "paste" ? (
+            <textarea
+              id="candidate"
+              value={candidateProfile}
+              onChange={(e) => setCandidateProfile(e.target.value)}
+              placeholder="Paste LinkedIn, resume, or notes…"
+              rows={10}
+              className="mt-1.5 min-h-[200px] w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm leading-relaxed text-nerdy-ink placeholder:text-nerdy-muted shadow-inner focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/15"
+            />
+          ) : (
+            <div className="mt-1.5">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={CV_ACCEPT}
+                className="sr-only"
+                aria-label="Choose CV file"
+                onChange={handleFileInputChange}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                disabled={extracting}
+                className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#4DD9D5] bg-slate-50/40 px-4 py-12 text-center transition-colors hover:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-[#4DD9D5]/35 disabled:pointer-events-none disabled:opacity-60"
+              >
+                <CvUploadIcon className="mb-3 text-[#4DD9D5]" />
+                <span className="text-sm font-medium text-nerdy-ink">
+                  {extracting ? "Reading your CV…" : "Drop your CV here or click to browse"}
+                </span>
+                <span className="mt-1 text-xs text-nerdy-muted">PDF or Word (.docx). Legacy .doc is not supported.</span>
+                {uploadFileName && !extracting ? (
+                  <span className="mt-3 max-w-full truncate text-xs font-medium text-nerdy-ink" title={uploadFileName}>
+                    Loaded: {uploadFileName}
+                  </span>
+                ) : null}
+              </button>
+            </div>
+          )}
 
           {error ? (
             <p
@@ -117,7 +253,12 @@ export function HomePage() {
           ) : null}
 
           <div className="mt-8 flex justify-center">
-            <PrimaryButton size="lg" className="min-w-[220px]" onClick={handleAnalyze} disabled={loading}>
+            <PrimaryButton
+              size="lg"
+              className="min-w-[220px]"
+              onClick={handleAnalyze}
+              disabled={loading || extracting}
+            >
               Generate analysis
             </PrimaryButton>
           </div>
