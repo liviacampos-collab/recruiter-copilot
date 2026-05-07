@@ -177,9 +177,6 @@ export function ResultsPage() {
 
         <div>
           <h3 className="text-[10px] font-semibold uppercase tracking-wider text-nerdy-purple">Signal breakdown</h3>
-          <p className="mt-1 text-[11px] text-nerdy-muted">
-            Values below come directly from the Claude analysis JSON for this role.
-          </p>
           <div className="mt-3">
             <KeySignals
               technicalDepth={gemini.technicalDepth}
