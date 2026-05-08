@@ -37,32 +37,60 @@ function CvUploadIcon({ className }: { className?: string }) {
 
 type ProfileInputMode = "paste" | "upload";
 
+type UploadStatus = "idle" | "reading" | "success" | "error";
+
+const UPLOAD_READ_ERROR =
+  "Could not read file. Please try a PDF or DOCX file.";
+
+function FileReadSpinner({ className }: { className?: string }) {
+  return (
+    <svg
+      className={`animate-spin ${className ?? ""}`}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      aria-hidden
+    >
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
+  );
+}
+
 export function HomePage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [role, setRole] = useState<RecruiterRole>(DEFAULT_ROLE);
   const [candidateProfile, setCandidateProfile] = useState("");
   const [inputMode, setInputMode] = useState<ProfileInputMode>("paste");
-  const [extracting, setExtracting] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
+  const [uploadFileName, setUploadFileName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const resetUploadUi = () => {
+    setUploadStatus("idle");
+    setUploadFileName(null);
+  };
+
   const processCvFile = async (file: File) => {
     setError(null);
-    setExtracting(true);
+    setUploadStatus("reading");
     try {
       const text = await extractTextFromCvFile(file);
       setCandidateProfile(text);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "";
-      const lower = msg.toLowerCase();
-      const isWrongOrUnsupportedType =
-        lower.includes("unsupported file type") ||
-        lower.includes("legacy") ||
-        /\b\.doc\b/.test(lower);
-      setError(isWrongOrUnsupportedType ? FORMAT_HINT : msg || "Could not read that file.");
-    } finally {
-      setExtracting(false);
+      setUploadFileName(file.name);
+      setUploadStatus("success");
+    } catch {
+      setCandidateProfile("");
+      setUploadFileName(null);
+      setUploadStatus("error");
     }
   };
 
@@ -90,7 +118,7 @@ export function HomePage() {
     if (!resumeText) {
       setError(
         inputMode === "upload"
-          ? `Upload a CV or switch to Paste Profile. ${FORMAT_HINT}`
+          ? "Upload a CV or switch to Paste Profile."
           : "Paste a candidate profile or résumé before generating analysis.",
       );
       return;
@@ -187,7 +215,10 @@ export function HomePage() {
                   ? "bg-white text-nerdy-ink shadow-sm"
                   : "text-nerdy-muted hover:text-nerdy-ink"
               }`}
-              onClick={() => setInputMode("paste")}
+              onClick={() => {
+                setInputMode("paste");
+                resetUploadUi();
+              }}
             >
               Paste Profile
             </button>
@@ -230,19 +261,52 @@ export function HomePage() {
                 onClick={() => fileInputRef.current?.click()}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                disabled={extracting}
+                disabled={uploadStatus === "reading"}
                 className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#4DD9D5] bg-slate-50/40 px-4 py-12 text-center transition-colors hover:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-[#4DD9D5]/35 disabled:pointer-events-none disabled:opacity-60"
               >
                 <CvUploadIcon className="mb-3 text-[#4DD9D5]" />
-                {extracting ? (
-                  <span className="text-sm font-medium text-nerdy-ink">Reading your CV…</span>
-                ) : (
-                  <>
-                    <span className="text-sm font-medium text-nerdy-ink">Drop your CV here or click to browse</span>
-                    <span className="mt-1 text-xs text-nerdy-muted">{FORMAT_HINT}</span>
-                  </>
-                )}
+                <span className="text-sm font-medium text-nerdy-ink">Drop your CV here or click to browse</span>
+                <span className="mt-1 text-xs text-nerdy-muted">{FORMAT_HINT}</span>
               </button>
+
+              {uploadStatus === "reading" ? (
+                <div
+                  className="mt-3 flex flex-col items-center gap-2 text-center text-xs text-nerdy-muted"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <FileReadSpinner className="text-nerdy-muted" />
+                  <span>Reading your file...</span>
+                </div>
+              ) : null}
+
+              {uploadStatus === "success" && uploadFileName ? (
+                <div
+                  className="mt-3 flex flex-col items-center gap-0.5 text-center text-xs text-[#22C55E]"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <span className="text-base font-semibold leading-none" aria-hidden>
+                    ✓
+                  </span>
+                  <span className="mt-1 max-w-full truncate font-medium" title={uploadFileName}>
+                    {uploadFileName}
+                  </span>
+                  <span className="font-medium">Ready to analyze</span>
+                </div>
+              ) : null}
+
+              {uploadStatus === "error" ? (
+                <div
+                  className="mt-3 flex flex-col items-center gap-1 text-center text-xs text-[#EF4444]"
+                  role="alert"
+                >
+                  <span className="text-base font-semibold leading-none" aria-hidden>
+                    ✗
+                  </span>
+                  <span className="max-w-[280px] leading-snug">{UPLOAD_READ_ERROR}</span>
+                </div>
+              ) : null}
             </div>
           )}
 
@@ -260,7 +324,7 @@ export function HomePage() {
               size="lg"
               className="min-w-[220px]"
               onClick={handleAnalyze}
-              disabled={loading || extracting}
+              disabled={loading || uploadStatus === "reading"}
             >
               Generate analysis
             </PrimaryButton>

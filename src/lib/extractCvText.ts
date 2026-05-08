@@ -1,8 +1,8 @@
-import * as pdfjs from "pdfjs-dist";
-import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import * as pdfjsLib from "pdfjs-dist";
 import mammoth from "mammoth";
 
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+/** jsDelivr mirrors npm `pdfjs-dist` at the same version as the app dependency (reliable on Vercel). */
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 function extensionOf(file: File): string {
   const name = file.name.toLowerCase();
@@ -11,7 +11,7 @@ function extensionOf(file: File): string {
 }
 
 async function extractPdfText(data: ArrayBuffer): Promise<string> {
-  const pdf = await pdfjs.getDocument({ data: new Uint8Array(data) }).promise;
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(data) }).promise;
   const parts: string[] = [];
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p);
