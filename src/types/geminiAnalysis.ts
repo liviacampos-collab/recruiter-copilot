@@ -19,6 +19,8 @@ export interface GeminiAnalysis {
   strengths: string[];
   areasToValidate: string[];
   outreachMessage: string;
+  /** Recruiter hint when profile may fit the other track; null when not applicable */
+  crossRoleNote: string | null;
 }
 
 export function parseGeminiAnalysisJson(raw: string): GeminiAnalysis {
@@ -48,6 +50,7 @@ export function parseGeminiAnalysisJson(raw: string): GeminiAnalysis {
       ? data.areasToValidate.filter((x) => typeof x === "string")
       : [],
     outreachMessage: typeof data.outreachMessage === "string" ? data.outreachMessage : "",
+    crossRoleNote: normalizeCrossRoleNote(data.crossRoleNote),
   };
 }
 
@@ -79,4 +82,12 @@ function normalizeNerdyLevel(raw: unknown, seniority: string): string {
   if (b.includes("staff")) return "L7";
   if (b.includes("senior")) return "L5";
   return "L4";
+}
+
+function normalizeCrossRoleNote(raw: unknown): string | null {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw !== "string") return null;
+  const s = raw.trim();
+  if (!s || /^null$/i.test(s)) return null;
+  return s;
 }

@@ -36,6 +36,17 @@ function resolveDisplayName(analysis: GeminiAnalysis, resumeText: string | undef
   return "";
 }
 
+/** Senior role: hide probe items about mentorship (Staff-only expectations). */
+function areaMentionsMentorshipOrLeadershipMentorship(text: string): boolean {
+  const s = text.toLowerCase();
+  return s.includes("mentorship") || s.includes("leadership mentorship");
+}
+
+function filterAreasToValidateForRole(areas: string[], recruiterRole: string): string[] {
+  if (recruiterRole !== ROLE_OPTIONS[0]) return areas;
+  return areas.filter((a) => !areaMentionsMentorshipOrLeadershipMentorship(a));
+}
+
 function BulletList({ items }: { items: string[] }) {
   return (
     <ul className="space-y-1.5">
@@ -99,6 +110,7 @@ export function ResultsPage() {
       : gemini.summary.trim()) || "—";
 
   const displayName = resolveDisplayName(gemini, location.state?.candidateProfile);
+  const areasToValidateForRole = filterAreasToValidateForRole(gemini.areasToValidate, role);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
@@ -137,7 +149,7 @@ export function ResultsPage() {
           <div className="min-w-0 flex-1">
             <h2 className="text-sm font-semibold text-nerdy-ink">Candidate match score</h2>
             <p className="mt-2 text-sm leading-relaxed text-nerdy-muted">{gemini.summary}</p>
-            {gemini.areasToValidate.length > 0 ? (
+            {areasToValidateForRole.length > 0 ? (
               <div
                 className={`mt-3 rounded-lg border px-3 py-2 text-xs leading-snug ${
                   gateConcern
@@ -147,7 +159,7 @@ export function ResultsPage() {
               >
                 <p className={`font-semibold ${gateConcern ? "text-amber-950" : "text-nerdy-ink"}`}>Areas to probe</p>
                 <ul className="mt-1.5 list-disc space-y-1 pl-4">
-                  {gemini.areasToValidate.map((a, i) => (
+                  {areasToValidateForRole.map((a, i) => (
                     <li key={`${i}-${a.slice(0, 48)}`}>{a}</li>
                   ))}
                 </ul>
@@ -158,6 +170,15 @@ export function ResultsPage() {
             <ProgressRing value={gemini.overallMatch} size={108} stroke={6} />
           </div>
         </div>
+
+        {gemini.crossRoleNote ? (
+          <div
+            className="mt-4 rounded-lg bg-[#FEF3C7] p-3 text-sm font-semibold text-[#92400E]"
+            role="note"
+          >
+            <p className="whitespace-pre-wrap leading-snug">{gemini.crossRoleNote}</p>
+          </div>
+        ) : null}
 
         <div className="my-5 border-t border-slate-200/90" />
 
@@ -215,7 +236,7 @@ export function ResultsPage() {
           <div>
             <h3 className="text-[10px] font-semibold uppercase tracking-wider text-nerdy-purple">Areas to validate</h3>
             <div className="mt-2">
-              <BulletList items={gemini.areasToValidate.length ? gemini.areasToValidate : ["—"]} />
+              <BulletList items={areasToValidateForRole.length ? areasToValidateForRole : ["—"]} />
             </div>
           </div>
           <div className="sm:col-span-1">

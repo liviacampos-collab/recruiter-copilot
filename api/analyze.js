@@ -1,4 +1,5 @@
 import { runAnalyze } from "../recruiter-core.js";
+import { postProcessAnalysisResult } from "../recruiter-post-process.js";
 
 function setCors(res, req) {
   const origin = req.headers.origin;
@@ -33,5 +34,9 @@ export default async function handler(req, res) {
 
   const body = parseBody(req);
   const out = await runAnalyze(body);
+  if (out.statusCode === 200 && typeof out.json?.result === "string") {
+    const resumeText = typeof body.resumeText === "string" ? body.resumeText : "";
+    out.json.result = postProcessAnalysisResult(out.json.result, body.role, resumeText);
+  }
   return res.status(out.statusCode).json(out.json);
 }

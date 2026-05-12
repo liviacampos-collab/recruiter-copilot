@@ -1,6 +1,8 @@
 import "dotenv/config";
 import http from "http";
+// Prompt + analyze: ./recruiter-core.js — post-process (crossRole + experience caps): ./recruiter-post-process.js
 import { runAnalyze } from "./recruiter-core.js";
+import { postProcessAnalysisResult } from "./recruiter-post-process.js";
 
 const PORT = 3001;
 const ALLOWED_ORIGIN = "http://localhost:5174";
@@ -57,6 +59,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   const out = await runAnalyze(body);
+  if (out.statusCode === 200 && typeof out.json?.result === "string") {
+    const resumeText = typeof body.resumeText === "string" ? body.resumeText : "";
+    out.json.result = postProcessAnalysisResult(out.json.result, body.role, resumeText);
+  }
   return sendJson(res, out.statusCode, out.json);
 });
 

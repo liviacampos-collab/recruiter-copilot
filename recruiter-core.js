@@ -6,6 +6,23 @@ Analyze this resume for the role of: ${role}
 RESUME:
 ${resumeText}
 
+=== ROLE-SPECIFIC FIT (MANDATORY — READ FIRST) ===
+You are scoring for EXACTLY this role title and nothing else: ${JSON.stringify(role)}
+
+Calibrate technical narrative and sub-scores to THIS role's job description only: Senior = strong IC, full-stack, AI-native delivery without requiring full Staff org bar; Staff = stricter expectations for mentorship, architecture ownership, org influence, and tenure per the Staff JD below.
+
+INVARIANT (NON-NEGOTIABLE — SAME RESUME): Let S = the overallMatch you would assign if the role were ONLY "Staff Engineer (AI Native)", and R = the overallMatch if the role were ONLY "Senior Software Engineer (AI Native)", holding the same resume and Nerdy rules. Staff has the STRICTER bar; Senior has the LOWER bar. You MUST ensure R >= S ALWAYS. It is FORBIDDEN for Senior overallMatch to be less than Staff overallMatch for the same candidate. A candidate who is "not quite Staff" must still read as a strong—or stronger—Senior fit numerically.
+
+SPREAD ON overallMatch: When both evaluations are in a comparable fit band, target R being at least S+5 and typically S+5 through S+10 (cap 100). Never output Senior overallMatch below the Staff overallMatch you would mentally assign to this same resume.
+
+When THIS request is "Senior Software Engineer (AI Native)": mentally fix S (Staff) first; your output overallMatch MUST be >= S, and SHOULD land in S+5..S+10 above S when S is between about 35 and 94.
+
+When THIS request is "Staff Engineer (AI Native)": mentally fix R (Senior) first; your output overallMatch MUST be <= R (Staff never exceeds Senior for the same person), and SHOULD land about R-10..R-5 below R when both are mid-range—Staff stays stricter.
+
+OTHER NUMERICS: technicalDepth, aiNative, and leadershipMentorship must reflect THIS role's expectations (Staff demands more demonstrated mentorship/architecture leadership evidence than Senior). overallMatch must still obey R >= S as above.
+
+UNIQUENESS: Senior vs Staff passes for the same resume must not be copy-paste identical across every field when bars differ—but never violate R >= S on overallMatch.
+
 === NERDY CONTEXT ===
 
 JOB DESCRIPTION - Senior Software Engineer (AI Native):
@@ -109,6 +126,22 @@ Important: A Staff engineer hired before 2023 may not mention AI tools explicitl
 - If a profile matches 3+ benchmark seniors closely, score 75-85.
 - Staff score only if explicit mentorship AND architecture ownership AND 10+ years are present.
 
+=== HARD CAPS & FINAL ADJUSTMENTS (NON-NEGOTIABLE — APPLY AFTER ALL OTHER SCORING) ===
+First derive a **provisional** overallMatch from every other section of this prompt (role fit, full-stack, AI-native, benchmarks, etc.). Then infer **total relevant professional software engineering experience** (years) from the resume. Then apply the steps below in order. If any instruction here conflicts with an earlier section, **this section wins**.
+
+**Step 1 — Experience ceilings (never exceed these on overallMatch for the final output):**
+- **Under 3 years** total experience: overallMatch MUST be **≤ 40**. **shouldScreen MUST be false.** (Example: ~2.5 years, no AWS, no AI tools, purely frontend for Senior Software Engineer → must land **≤ 40**, never in the 40s or higher.)
+- **At least 3 years and under 5 years** total experience: overallMatch MUST be **≤ 58**. **shouldScreen MUST be false** (the global "above 70" screen rule cannot apply while this cap holds).
+- **At least 5 years and under 7 years** total experience: overallMatch MUST be **≤ 68**.
+- **Only 7+ years** of experience, together with **strong full-stack production evidence**, **AWS or comparable cloud production experience**, **and** meaningful **AI tools and/or AI product delivery** (explicit tools or clear LLM/AI integrations), may yield overallMatch **above 70**. If any of those three pillars is weak or missing, keep overallMatch **≤ 70** unless the experience band above already caps lower.
+
+**Step 2 — Additional subtractions (apply to the result after Step 1 ceiling; then clamp overallMatch to 0–100):**
+- **No AWS or cloud production experience at all** (no AWS, GCP, Azure; no production serverless/containers/cloud deploy path stated): **subtract 10** from overallMatch.
+- **No AI coding tools named** (Cursor, Copilot, Claude Code, ChatGPT, etc.) **and** no stated **AI/LLM API integrations or shipped AI-powered features**: **subtract 8** from overallMatch. (If the resume clearly documents production LLM/GenAI integrations or AI features, do not apply this −8 even when IDE tools are unnamed.)
+- **Purely frontend profile** (no meaningful **backend production** work—no APIs/services, databases, or backend ownership in production): **subtract 12** from overallMatch **and** **shouldScreen MUST be false.**
+
+**Step 3 — Final check:** Re-apply experience ceilings so overallMatch never ends **above** the band cap after subtractions. **shouldScreen** must be **false** whenever this section requires it, even if other rules suggested true.
+
 === LEADERSHIP & MENTORSHIP (leadershipMentorship field) ===
 Score leadershipMentorship from 0-100 using ONLY evidence stated on the resume:
 - 70+: Resume explicitly mentions mentoring senior engineers, leading engineering teams, conducting performance reviews, or growing other engineers' careers with concrete results.
@@ -161,8 +194,13 @@ Rules:
 - NEVER output placeholder strings such as "Candidate", "Unknown", "N/A", or similar—use best-effort extraction or "" only if truly no personal name exists anywhere in the text.
 
 === CANDIDATE LOCATION (candidateLocation field) ===
-From the RESUME text only, infer the most probable current or primary location: prefer "City, Country" when both are stated or clearly inferable; use "Country" alone if no city appears. Use employers, education, contact blocks, or explicit address lines as clues. This field is informational only and MUST NOT affect any scores or shouldScreen.
-If location cannot be determined, use exactly: "Location not specified"
+Infer **personal residence / where the candidate lives now**, not where their employer is headquartered. This field is informational only and MUST NOT affect any scores or shouldScreen.
+
+**Priority (highest first):** explicit personal location cues on the resume or LinkedIn export—e.g. **"Based in"**, **"Location:"**, **"Residing in"**, **"Living in"**, city/region in a **contact or profile header** at the top, **Open to relocate from X**, or the **most recently dated** personal address block. Prefer these over employer office locations, client sites, or "remote for [Company]" unless no personal signal exists.
+
+**Do NOT infer residence from:** employer HQ country alone, a single client or project geography, or "Remote — [Country]" tied only to the company (e.g. working remotely **for** a German company does **not** mean the candidate **lives in Germany** unless the resume also states they are based there).
+
+If multiple personal locations appear, prefer the **most recent** or the one labeled as current. Use "City, Country" when both are clear; "Country" alone if no city; if no reliable personal location: use exactly: "Location not specified"
 
 === NERDY INTERNAL LEVEL (nerdyLevel field) ===
 Map the candidate to Nerdy's internal job leveling string using resume evidence (years of professional software engineering experience, ownership, leadership, architecture, mentorship, org influence). Output EXACTLY one of these five string values—no other text:
