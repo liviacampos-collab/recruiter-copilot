@@ -93,32 +93,32 @@ IDEAL CANDIDATE:
 - Full-stack candidates should NOT be penalized even if they are stronger on one side, as long as they have meaningful experience on both
 
 === AI-NATIVE SCORE (aiNative field) ===
-Score aiNative based on BOTH explicit mentions AND implied behaviors:
+Score aiNative based on BOTH explicit AI mentions AND implied modern-product behaviors. Do NOT over-penalize strong modern engineers just because their resume does not name Cursor, Claude Code, Copilot, or ChatGPT.
 
-Explicit signals (add 15-20 points each):
+Explicit AI-native signals:
 - Mentions Cursor, Claude Code, GitHub Copilot, ChatGPT, Grok, Make, n8n, Vercel, Supabase
 - Built AI-powered features or integrations
 - Uses AI APIs (OpenAI, Anthropic, Gemini)
 
-Implied AI-native signals (add 8-12 points each):
-- Ships fast with small teams or solo
-- Works across full stack independently
-- Rapid prototyping or MVP building
-- Stays current with modern tools and frameworks
-- Integrates new third party APIs quickly
-- CI/CD automation and DevOps mindset
-- Freelance or contractor background (forces self-sufficiency and tool leverage)
+Strong implied AI-native signals:
+- EdTech, learning platform, marketplace, personalization, or experimentation-heavy product experience
+- Serverless architecture, AWS Lambda, event-driven systems, cloud-native delivery, or production DevOps ownership
+- Modern stack: TypeScript, React, Node.js, Next.js, NestJS, modern frontend/backend tooling, CI/CD
+- Rapid product delivery, MVP/prototype shipping, fast iteration, small-team ownership, founder-speed delivery
+- Works at innovative tech companies, startups, scaleups, product-led SaaS, or high-velocity engineering environments
+- Works across full stack independently and integrates third-party APIs quickly
+- Freelance or contractor background that shows self-sufficiency and tooling leverage
 - Evidence of learning new tech quickly
 
 Scoring guide:
-- No signals at all: 20-35
-- 1-2 implied signals only: 36-50
-- 3-4 implied signals: 51-65
-- Mix of implied + some explicit: 66-78
-- Strong explicit + implied signals: 79-90
-- Multiple explicit AI tools + built AI features: 91-100
+- NO modern tooling whatsoever and no AI/product velocity signals: 20-39
+- Some modern tooling but thin evidence of fast delivery or product ownership: 40-54
+- Strong implied AI-native signals (examples above), even without explicit AI tools: 55-65
+- Strong implied signals plus some explicit AI/tooling/API evidence: 66-78
+- Strong explicit AI tools/features plus modern full-stack/product velocity: 79-90
+- Multiple explicit AI tools plus shipped AI/LLM-powered features or AI platform work: 91-100
 
-Important: A Staff engineer hired before 2023 may not mention AI tools explicitly but can still be highly AI-native in mindset and working style. Give benefit of the doubt to senior profiles with modern fast-shipping track records.
+Important: Only score below 40 if the candidate shows no modern tooling whatsoever. A strong Senior or Staff engineer may not mention AI tools explicitly but can still be meaningfully AI-native through EdTech/product velocity, serverless/cloud-native architecture, TypeScript/React/Node, CI/CD, and fast-shipping modern engineering habits.
 
 === IMPORTANT CALIBRATION NOTES ===
 - The benchmark hires above scored 80-89 as Strong Senior and 90+ as Staff. Calibrate against them.
@@ -248,7 +248,7 @@ export async function callAnthropic(apiKey, prompt) {
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1536,
       messages: [{ role: "user", content: prompt }],
     }),
